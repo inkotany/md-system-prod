@@ -1,15 +1,29 @@
-const winston = require('winston');
-require('express-async-errors');
+const winston = require("winston");
+require("express-async-errors");
 
 module.exports = function () {
-  winston.add(new winston.transports.File(), { filename: "logfile.log" });
-
-  process.on("uncaughtException", (ex) => {
-    console.log("UNCAUGHT ERROR");
-    winston.error(ex.message, ex);
+  const logger = winston.createLogger({
+    level: "info",
+    format: winston.format.combine(
+      winston.format.colorize(),
+      winston.format.timestamp(),
+      winston.format.printf(
+        (info) => `${info.timestamp} ${info.level}: ${info.message}`
+      )
+    ),
+    transports: [
+      new winston.transports.Console(),
+      new winston.transports.File({ filename: "start-up.log", level: "error" }),
+    ],
   });
 
-  process.on("unhandledRejection", (ex) => {
-    throw ex;
+  process.on("uncaughtException", (err) => {
+    logger.error(`Uncaught Exception: ${err}`);
+    process.exit(1);
   });
+
+  process.on('unhandledRejection', (err) => {
+    logger.error(err);
+    process.exit(1);
+  })
 };
