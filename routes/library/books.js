@@ -8,7 +8,7 @@ const librarian = require('../../middleware/librarian');
 
 const router = express.Router();
 
-router.get("/", async (req, res) => {
+router.get("/", [auth, librarian], async (req, res) => {
   const books = await Book.find().sort("name").select("-__v");
   res.status(200).send(books);
 });
